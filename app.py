@@ -41,7 +41,7 @@ st.title("Bonvi omniPD model calculator")
 st.markdown(
     """
 Inserisci almeno 4 punti dati (tra cui **sprint**) tempo (s) e potenza (W).  
-Per avere valori di **A** inserisci **MMP oltre i 30 minuti**.
+Per avere valori di **A** inserisci **MMP oltre i 30 minuti** (opzionale).
 
 📄 [Paper](https://pubmed.ncbi.nlm.nih.gov/32131692/)
 """
