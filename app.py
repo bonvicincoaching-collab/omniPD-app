@@ -52,6 +52,7 @@ for i in range(num_rows):
     t_str = cols[0].text_input(f"Time (s) #{i+1}", value="", key=f"time_{i}")
     P_str = cols[1].text_input(f"Power (W) #{i+1}", value="", key=f"power_{i}")
     
+    # converte solo se numerico e >0
     try:
         t_val = int(t_str)
         P_val = int(P_str)
@@ -62,7 +63,20 @@ for i in range(num_rows):
         pass  # ignora input vuoti o non numerici
 
 # =========================
-# Calcolo e grafici
+# Calcolatore rapido prima del tasto Calcola
+st.write("**Quanti watt faccio per questo tempo?**")
+t_calc = st.number_input("", min_value=1, value=60, step=1, format="%d", key="t_calc_minimal")
+col_calc = st.columns([1,1])
+
+if "params_computed" in st.session_state:
+    params = st.session_state["params_computed"]
+    P_calc = ompd_power_with_bias(t_calc, params["CP_b"], params["W_prime_b"], params["Pmax_b"], params["A_b"], params["B_b"])
+    col_calc[0].write(f"{t_calc}s → {int(round(P_calc))} W")
+else:
+    col_calc[0].write(f"{t_calc}s → W")
+
+# =========================
+# Pulsante Calcola
 if st.button("Calcola", key="calcola_btn"):
     if len(time_values) < 4:
         st.error("Errore: inserire almeno 4 punti dati validi.")
@@ -90,6 +104,11 @@ if st.button("Calcola", key="calcola_btn"):
         MAE = np.mean(np.abs(residuals))
         bias_real = B_b
 
+        # Salva parametri in session_state per il calcolatore rapido
+        st.session_state["params_computed"] = {
+            "CP_b": CP_b, "W_prime_b": W_prime_b, "Pmax_b": Pmax_b, "A_b": A_b, "B_b": B_b
+        }
+
         # W'eff
         T_plot_w = np.linspace(1, 3*60, 500)
         Weff_plot = w_eff(T_plot_w, W_prime, CP, Pmax)
@@ -99,18 +118,33 @@ if st.button("Calcola", key="calcola_btn"):
         w_99 = Weff_plot[t_99_idx]
 
         # =========================
-        # Salva parametri in session_state per calcolatore rapido
-        st.session_state["params_computed"] = {
-            "CP_b": CP_b, "W_prime_b": W_prime_b, "Pmax_b": Pmax_b, "A_b": A_b, "B_b": B_b
-        }
+        # Calcolo valori teorici
+        durations_s = [5*60, 10*60, 15*60, 20*60, 30*60]
+        predicted_powers = [int(round(float(ompd_power(t, CP, W_prime, Pmax, A)))) for t in durations_s]
 
         # =========================
-        # Calcolatore rapido compatto
-        st.write("**Quanti watt faccio per questo tempo?**")
-        t_calc = st.number_input("", min_value=1, value=60, step=1, format="%d", key="t_calc_minimal")
-        col_calc = st.columns([1,1])
-        P_calc = ompd_power_with_bias(t_calc, CP_b, W_prime_b, Pmax_b, A_b, B_b)
-        col_calc[0].write(f"{t_calc}s → {int(round(P_calc))} W")
+        # Mostra riquadri sopra i grafici
+        col1, col2, col3 = st.columns(3)
+
+        with col1:
+            st.markdown("**Parametri stimati**")
+            st.markdown(f"CP: {int(round(CP))} W")
+            st.markdown(f"W': {int(round(W_prime))} J")
+            st.markdown(f"99% W'eff at {_format_time_label_custom(t_99)}")
+            st.markdown(f"Pmax: {int(round(Pmax))} W")
+            st.markdown(f"A: {A:.2f}")
+
+        with col2:
+            st.markdown("**Residual summary**")
+            st.markdown(f"RMSE: {RMSE:.2f} W")
+            st.markdown(f"MAE: {MAE:.2f} W")
+            st.markdown(f"Bias: {bias_real:.2f} W")
+
+        with col3:
+            st.markdown("**Valori teorici**")
+            for t, p in zip(durations_s, predicted_powers):
+                minutes = t // 60
+                st.markdown(f"{minutes}m: {p} W")
 
         # =========================
         # Grafico OmPD
@@ -147,36 +181,7 @@ if st.button("Calcola", key="calcola_btn"):
         fig3.update_layout(title="OmPD Effective W'", hovermode="x unified", height=700)
 
         # =========================
-        # Calcolo valori teorici
-        durations_s = [5*60, 10*60, 15*60, 20*60, 30*60]
-        predicted_powers = [int(round(float(ompd_power(t, CP, W_prime, Pmax, A)))) for t in durations_s]
-
-        # =========================
-        # Mostra riquadri sopra i grafici
-        col1, col2, col3 = st.columns(3)
-        with col1:
-            st.markdown("**Parametri stimati**")
-            st.markdown(f"CP: {int(round(CP))} W")
-            st.markdown(f"W': {int(round(W_prime))} J")
-            st.markdown(f"99% W'eff at {_format_time_label_custom(t_99)}")
-            st.markdown(f"Pmax: {int(round(Pmax))} W")
-            st.markdown(f"A: {A:.2f}")
-
-        with col2:
-            st.markdown("**Residual summary**")
-            st.markdown(f"RMSE: {RMSE:.2f} W")
-            st.markdown(f"MAE: {MAE:.2f} W")
-            st.markdown(f"Bias: {bias_real:.2f} W")
-
-        with col3:
-            st.markdown("**Valori teorici**")
-            for t, p in zip(durations_s, predicted_powers):
-                minutes = t // 60
-                st.markdown(f"{minutes}m: {p} W")
-
-        # =========================
         # Mostra grafici
         st.plotly_chart(fig1)
         st.plotly_chart(fig2)
         st.plotly_chart(fig3)
-
