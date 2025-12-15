@@ -37,7 +37,15 @@ def _format_time_label_custom(seconds):
 # =========================
 # Streamlit layout
 st.title("Bonvi omniPD Web App")
-st.write("Inserisci almeno 4 punti dati, tra cui sprint: tempo (s) e potenza (W). Per valori di A inserisci MMP oltre i 30m")
+
+st.markdown(
+    """
+Inserisci almeno 4 punti dati, tra cui sprint: tempo (s) e potenza (W).  
+Per valori di **A** inserisci **MMP oltre i 30 minuti**.
+
+📄 [Paper omniPD](INSERISCI_QUI_IL_LINK)
+"""
+)
 
 # =========================
 # Input dati
