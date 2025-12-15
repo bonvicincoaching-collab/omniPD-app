@@ -102,7 +102,7 @@ if st.button("Calcola", key="calcola_btn"):
         # =========================
         # Calcolatore minimal prima dei grafici
         st.subheader("Calcolatore rapido potenza")
-        t_calc = st.number_input("Inserisci durata (s)", min_value=1, value=0,
+        t_calc = st.number_input("Inserisci durata (s)", min_value=1, value=1,
                                  step=1, format="%d", key="t_calc_minimal")
         if t_calc > 0:
             P_calc = ompd_power_with_bias(t_calc, CP_b, W_prime_b, Pmax_b, A_b, B_b)
