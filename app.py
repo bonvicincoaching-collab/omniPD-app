@@ -49,26 +49,30 @@ power_values = []
 
 for i in range(num_rows):
     cols = st.columns(2)
-    t = cols[0].number_input(f"Time (s) #{i+1}", min_value=1, value=0, step=1, format="%d", key=f"time_{i}")
-    P = cols[1].number_input(f"Power (W) #{i+1}", min_value=1, value=0, step=1, format="%d", key=f"power_{i}")
-    time_values.append(t)
-    power_values.append(P)
+    t_str = cols[0].text_input(f"Time (s) #{i+1}", value="", key=f"time_{i}")
+    P_str = cols[1].text_input(f"Power (W) #{i+1}", value="", key=f"power_{i}")
+    
+    # converte solo se numerico e >0
+    try:
+        t_val = int(t_str)
+        P_val = int(P_str)
+        if t_val > 0 and P_val > 0:
+            time_values.append(t_val)
+            power_values.append(P_val)
+    except:
+        pass  # ignora input vuoti o non numerici
 
 # =========================
-# Calcolo e visualizzazione
+# Calcolo e grafici
 if st.button("Calcola", key="calcola_btn"):
-    # Filtra solo valori validi
-    data = [(t, P) for t, P in zip(time_values, power_values) if t > 0 and P > 0]
-    
-    if len(data) < 4:
+    if len(time_values) < 4:
         st.error("Errore: inserire almeno 4 punti dati validi.")
     else:
-        df = pd.DataFrame(data, columns=["t","P"])
+        df = pd.DataFrame({"t": time_values, "P": power_values})
 
         # Fit OmPD standard
         initial_guess = [np.percentile(df["P"],30), 20000, df["P"].max(), 5]
-        params, _ = curve_fit(ompd_power, df["t"].values, df["P"].values,
-                              p0=initial_guess, maxfev=20000)
+        params, _ = curve_fit(ompd_power, df["t"].values, df["P"].values, p0=initial_guess, maxfev=20000)
         CP, W_prime, Pmax, A = params
 
         # Fit OmPD con bias
@@ -93,9 +97,10 @@ if st.button("Calcola", key="calcola_btn"):
         W_99 = 0.99 * W_prime
         t_99_idx = np.argmin(np.abs(Weff_plot - W_99))
         t_99 = T_plot_w[t_99_idx]
+        w_99 = Weff_plot[t_99_idx]
 
         # =========================
-        # Grafici
+        # Grafico OmPD
         T_plot = np.logspace(np.log10(1.0), np.log10(max(max(df["t"])*1.1, 180*60)), 500)
         fig1 = go.Figure()
         fig1.add_trace(go.Scatter(x=df["t"], y=df["P"], mode='markers', name="Dati reali", marker=dict(symbol='x', size=10)))
@@ -108,6 +113,8 @@ if st.button("Calcola", key="calcola_btn"):
         fig1.update_yaxes(title_text="Power (W)")
         fig1.update_layout(title="OmPD Curve", hovermode="x unified", height=700)
 
+        # =========================
+        # Grafico Residuals
         fig2 = go.Figure()
         fig2.add_trace(go.Scatter(x=df["t"], y=residuals, mode='lines+markers', name="Residuals", marker=dict(symbol='x', size=8), line=dict(color='red')))
         fig2.add_hline(y=0, line=dict(color='black', dash='dash'))
@@ -115,9 +122,11 @@ if st.button("Calcola", key="calcola_btn"):
         fig2.update_yaxes(title_text="Residuals (W)")
         fig2.update_layout(title="Residuals", hovermode="x unified", height=700)
 
+        # =========================
+        # Grafico W'eff
         fig3 = go.Figure()
         fig3.add_trace(go.Scatter(x=T_plot_w, y=Weff_plot, mode='lines', name="W'eff", line=dict(color='green')))
-        fig3.add_hline(y=W_99, line=dict(color='blue', dash='dash'))
+        fig3.add_hline(y=w_99, line=dict(color='blue', dash='dash'))
         fig3.add_vline(x=t_99, line=dict(color='blue', dash='dash'))
         fig3.add_annotation(x=t_99, y=W_99, text=f"99% W'eff at {_format_time_label_custom(t_99)}", showarrow=True, arrowhead=2)
         fig3.update_xaxes(title_text="Time (s)")
@@ -130,7 +139,7 @@ if st.button("Calcola", key="calcola_btn"):
         predicted_powers = [int(round(float(ompd_power(t, CP, W_prime, Pmax, A)))) for t in durations_s]
 
         # =========================
-        # Mostra riquadri sopra grafici
+        # Mostra riquadri sopra i grafici
         col1, col2, col3 = st.columns(3)
 
         with col1:
@@ -154,7 +163,7 @@ if st.button("Calcola", key="calcola_btn"):
                 st.markdown(f"{minutes}m: {p} W")
 
         # =========================
-        # Mostra grafici
+        # Mostra grafici sotto i riquadri
         st.plotly_chart(fig1)
         st.plotly_chart(fig2)
         st.plotly_chart(fig3)
