@@ -218,16 +218,50 @@ if uploaded_file is not None:
     try:
         df_csv = pd.read_csv(uploaded_file)
         st.dataframe(df_csv.head())
+
         col_time = st.selectbox("Seleziona la colonna TEMPO", options=df_csv.columns)
         col_power = st.selectbox("Seleziona la colonna POTENZA", options=df_csv.columns)
 
         if st.button("Importa dati CSV e calcola", key="csv_btn"):
+            # Pulizia dati
             df_valid = df_csv[[col_time, col_power]].dropna()
             time_values_csv = df_valid[col_time].astype(float).tolist()
             power_values_csv = df_valid[col_power].astype(float).tolist()
+
             st.session_state["time_values_csv"] = time_values_csv
             st.session_state["power_values_csv"] = power_values_csv
+
             st.success(f"Dati importati: {len(time_values_csv)} punti")
+
+            # =========================
+            # Esegui il calcolo automatico usando gli stessi parametri del pulsante “Calcola”
+            df = pd.DataFrame({"t": time_values_csv, "P": power_values_csv})
+
+            initial_guess = [np.percentile(df["P"],30), 20000, df["P"].max(), 5]
+            params, _ = curve_fit(ompd_power, df["t"].values, df["P"].values, p0=initial_guess, maxfev=20000)
+            CP, W_prime, Pmax, A = params
+
+            initial_guess_bias = [np.percentile(df["P"],30),20000,df["P"].max(),5,0]
+            param_bounds = ([0,0,0,0,-100], [1000,50000,5000,100,100])
+            params_bias, _ = curve_fit(ompd_power_with_bias,
+                                       df["t"].values.astype(float),
+                                       df["P"].values.astype(float),
+                                       p0=initial_guess_bias,
+                                       bounds=param_bounds,
+                                       maxfev=20000)
+            CP_b, W_prime_b, Pmax_b, A_b, B_b = params_bias
+            P_pred = ompd_power_with_bias(df["t"].values.astype(float), *params_bias)
+            residuals = df["P"].values.astype(float) - P_pred
+            RMSE = np.sqrt(np.mean(residuals**2))
+            MAE = np.mean(np.abs(residuals))
+            bias_real = B_b
+
+            st.session_state["params_computed"] = {
+                "CP_b": CP_b, "W_prime_b": W_prime_b, "Pmax_b": Pmax_b, "A_b": A_b, "B_b": B_b
+            }
+
+            st.success("Calcolo completato automaticamente dal CSV!")
 
     except Exception as e:
         st.error(f"Errore durante la lettura del CSV: {e}")
+
