@@ -36,8 +36,8 @@ def _format_time_label_custom(seconds):
 
 # =========================
 # Streamlit layout
-st.title("OmPD Web App")
-st.write("Inserisci almeno 4 punti dati: tempo (s) e potenza (W)")
+st.title("Bonvi omniPD Web App")
+st.write("Inserisci almeno 4 punti dati: tempo (s) e potenza (W)\nuno sprint (best is 5-10s))")
 
 # =========================
 # Input dati
@@ -49,8 +49,8 @@ power_values = []
 
 for i in range(num_rows):
     cols = st.columns(2)
-    t = cols[0].number_input(f"Time (s) #{i+1}", min_value=1.0, value=60.0)
-    P = cols[1].number_input(f"Power (W) #{i+1}", min_value=1.0, value=300.0)
+    t = cols[0].number_input(f"Time (s) #{i+1}", min_value=1, value=60, step=1, format="%d")
+    P = cols[1].number_input(f"Power (W) #{i+1}", min_value=1, value=300, step=1, format="%d")
     time_values.append(t)
     power_values.append(P)
 
@@ -129,21 +129,36 @@ if st.button("Calcola"):
         fig3.update_layout(title="OmPD Effective W'", hovermode="x unified", height=700)
 
         # =========================
-        # Mostra grafici
+        # Calcolo valori teorici
+        durations_s = [5*60, 10*60, 15*60, 20*60, 30*60]  # in secondi
+        predicted_powers = [int(round(float(ompd_power(t, CP, W_prime, Pmax, A)))) for t in durations_s]
+
+        # =========================
+        # Mostra i 3 riquadri sopra i grafici
+        col1, col2, col3 = st.columns(3)
+
+        with col1:
+            st.subheader("Parametri stimati")
+            st.write(f"CP: {int(round(CP))} W")
+            st.write(f"W': {int(round(W_prime))} J")
+            st.write(f"99% W'eff at {_format_time_label_custom(t_99)}")
+            st.write(f"Pmax: {int(round(Pmax))} W")
+            st.write(f"A: {A:.2f}")
+
+        with col2:
+            st.subheader("Residual summary")
+            st.write(f"RMSE: {RMSE:.2f} W")
+            st.write(f"MAE: {MAE:.2f} W")
+            st.write(f"Bias: {bias_real:.2f} W")
+
+        with col3:
+            st.subheader("Valori teorici")
+            for t, p in zip(durations_s, predicted_powers):
+                minutes = t // 60
+                st.write(f"{minutes}m: {p} W")
+
+        # =========================
+        # Mostra grafici sotto i riquadri
         st.plotly_chart(fig1)
         st.plotly_chart(fig2)
         st.plotly_chart(fig3)
-
-        # =========================
-        # Mostra parametri
-        st.subheader("Parametri stimati")
-        st.write(f"CP: {int(round(CP))} W")
-        st.write(f"W': {int(round(W_prime))} J")
-        st.write(f"99% W'eff at {_format_time_label_custom(t_99)}")
-        st.write(f"Pmax: {int(round(Pmax))} W")
-        st.write(f"A: {A:.2f}")
-
-        st.subheader("Residual summary")
-        st.write(f"RMSE: {RMSE:.2f} W")
-        st.write(f"MAE: {MAE:.2f} W")
-        st.write(f"Bias: {bias_real:.2f} W")
