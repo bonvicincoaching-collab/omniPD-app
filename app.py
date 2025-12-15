@@ -201,12 +201,40 @@ else:
     col.markdown(f"**{time_label} → W**")
 
 # =========================
-# Pulsante Calcola
-if st.button("Calcola", key="calcola_btn"):
+# Riga con due pulsanti affiancati: Calcola e Importa CSV
+col_calc, col_csv = st.columns([0.5, 0.5])
+
+# Bottone Calcola
+if col_calc.button("Calcola", key="calcola_btn"):
     if len(time_values) < 4:
         st.error("Errore: inserire almeno 4 punti dati validi.")
     else:
-        df = pd.DataFrame({"t": time_values, "P": power_values})
+        # inserisci qui tutto il blocco di calcolo che già hai
+        ...
+
+# Bottone CSV (solo se un file è stato caricato)
+if uploaded_file is not None:
+    if col_csv.button("Importa CSV e calcola", key="import_csv_inline"):
+        try:
+            # Mantieni solo righe valide
+            df_valid = df_csv[[col_time, col_power]].dropna()
+            time_values_csv = df_valid[col_time].astype(float).tolist()
+            power_values_csv = df_valid[col_power].astype(float).tolist()
+
+            st.session_state["time_values_csv"] = time_values_csv
+            st.session_state["power_values_csv"] = power_values_csv
+            st.success(f"Dati importati correttamente: {len(time_values_csv)} punti")
+
+            # Sovrascrive le variabili locali
+            time_values = st.session_state["time_values_csv"]
+            power_values = st.session_state["power_values_csv"]
+
+            # Esegui automaticamente il calcolo (puoi riutilizzare lo stesso blocco di calcolo)
+            if len(time_values) >= 4:
+                df = pd.DataFrame({"t": time_values, "P": power_values})
+                # ... inserisci qui lo stesso blocco di fit/calcolo/plot che già usi
+        except Exception as e:
+            st.error(f"Errore durante la lettura del CSV: {e}")
 
         # Fit OmPD standard
         initial_guess = [np.percentile(df["P"],30), 20000, df["P"].max(), 5]
