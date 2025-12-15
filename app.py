@@ -232,6 +232,6 @@ if "params_computed" in st.session_state:
         p["CP_b"], p["W_prime_b"], p["Pmax_b"], p["A_b"], p["B_b"]
     )
     time_label = _format_time_label_custom(t_calc)
-    col_calc.markdown(f"**{time_label} → {int(round(P_calc))} W**")
+    col_calc.markdown(f"**{time_label} → {int(round(P_calc))} W**  (per aggiornare usare il pulsante \"Calcola\" O \"Importa dati CSV e calcola\")")
 else:
     col_calc.markdown("⚠ Per calcolare, scrollare e premere il 'Calcola' in alto'")
