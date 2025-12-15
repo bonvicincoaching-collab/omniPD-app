@@ -71,7 +71,7 @@ for i in range(num_rows):
         if t_val > 0 and P_val > 0:
             time_values.append(t_val)
             power_values.append(P_val)
-    except:
+    except Exception:
         pass
 
 # =========================
@@ -87,12 +87,14 @@ def calcola_e_mostra(time_values, power_values):
     # Fit OmPD con bias
     initial_guess_bias = [np.percentile(df["P"],30),20000,df["P"].max(),5,0]
     param_bounds = ([0,0,0,0,-100], [1000,50000,5000,100,100])
-    params_bias, _ = curve_fit(ompd_power_with_bias,
-                               df["t"].values.astype(float),
-                               df["P"].values.astype(float),
-                               p0=initial_guess_bias,
-                               bounds=param_bounds,
-                               maxfev=20000)
+    params_bias, _ = curve_fit(
+        ompd_power_with_bias,
+        df["t"].values.astype(float),
+        df["P"].values.astype(float),
+        p0=initial_guess_bias,
+        bounds=param_bounds,
+        maxfev=20000
+    )
     CP_b, W_prime_b, Pmax_b, A_b, B_b = params_bias
     P_pred = ompd_power_with_bias(df["t"].values.astype(float), *params_bias)
     residuals = df["P"].values.astype(float) - P_pred
@@ -210,6 +212,8 @@ if uploaded_file is not None:
 
             # Calcolo e visualizzazione immediata
             calcola_e_mostra(time_values_csv, power_values_csv)
+    except Exception as e:
+        st.error(f"Errore durante la lettura del CSV: {e}")
 
 # =========================
 # Calcolatore rapido funzionante
@@ -218,7 +222,7 @@ col_calc = st.columns([1])[0]
 t_str = col_calc.text_input("Inserisci tempo (s)", value="1200", key="t_calc_final")
 try:
     t_calc = max(1, int(t_str))
-except:
+except Exception:
     t_calc = 60
 
 if "params_computed" in st.session_state:
