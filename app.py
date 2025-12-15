@@ -48,7 +48,7 @@ num_rows = st.number_input("Numero di punti dati", min_value=4, max_value=20, va
 # Input dati con label personalizzate
 # =========================
 
-time_labels = ["Sprint", "Test 1", "Test 2", "Test 3", "Altro"]
+time_labels = ["Sprint (1-10s)", "Test 1", "Test 2", "Test 3", "Altro"]
 
 time_values = []
 power_values = []
