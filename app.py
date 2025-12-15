@@ -49,8 +49,8 @@ power_values = []
 
 for i in range(num_rows):
     cols = st.columns(2)
-    t = cols[0].number_input(f"Time (s) #{i+1}", min_value=1, value=none, step=1, format="%d")
-    P = cols[1].number_input(f"Power (W) #{i+1}", min_value=1, value=none, step=1, format="%d")
+    t = cols[0].number_input(f"Time (s) #{i+1}", min_value=1, value=60, step=1, format="%d")
+    P = cols[1].number_input(f"Power (W) #{i+1}", min_value=1, value=300, step=1, format="%d")
     time_values.append(t)
     power_values.append(P)
 
@@ -162,3 +162,4 @@ if st.button("Calcola"):
         st.plotly_chart(fig1)
         st.plotly_chart(fig2)
         st.plotly_chart(fig3)
+
