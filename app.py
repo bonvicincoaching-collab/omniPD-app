@@ -274,7 +274,7 @@ if "params_computed" in st.session_state:
     time_label = _format_time_label_custom(t_calc)
     
     # Mostra valore calcolato
-    col_calc.markdown(f"**{time_label} → {int(round(P_calc))} W** | (per aggiornare \"Enter\" dopo aver cambiato t)")
+    col_calc.markdown(f"**{time_label} → {int(round(P_calc))} W** | (per aggiornare premere \"Enter\" dopo aver cambiato t)")
     
     # Se c'è CSV, mostra sotto il valore reale più vicino
     if "time_values_csv" in st.session_state and "power_values_csv" in st.session_state:
