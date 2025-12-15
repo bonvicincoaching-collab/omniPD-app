@@ -55,7 +55,7 @@ Per avere valori di **A** inserisci **MMP oltre i 30 minuti** (opzionale).
 )
 
 # =========================
-# Import CSV (modulo indipendente con calcolo automatico)
+# Import CSV (modulo indipendente con calcolo automatico e gestione NaN)
 uploaded_file = st.file_uploader("(opzionale) carica un file CSV", type=["csv"])
 
 if uploaded_file is not None:
@@ -69,10 +69,17 @@ if uploaded_file is not None:
 
         # Bottone per importare e calcolare
         if st.button("Importa dati CSV e calcola"):
-            # Aggiorna session_state
-            st.session_state["time_values_csv"] = df_csv[col_time].dropna().astype(float).tolist()
-            st.session_state["power_values_csv"] = df_csv[col_power].dropna().astype(float).tolist()
-            st.success(f"Dati importati correttamente: {len(st.session_state['time_values_csv'])} punti")
+            # Mantieni solo le righe dove entrambe le colonne hanno valori
+            df_valid = df_csv[[col_time, col_power]].dropna()
+
+            # Trasforma in liste
+            time_values_csv = df_valid[col_time].astype(float).tolist()
+            power_values_csv = df_valid[col_power].astype(float).tolist()
+
+            st.session_state["time_values_csv"] = time_values_csv
+            st.session_state["power_values_csv"] = power_values_csv
+
+            st.success(f"Dati importati correttamente: {len(time_values_csv)} punti")
 
             # Sovrascrive le variabili locali usate dal tuo script
             time_values = st.session_state["time_values_csv"]
