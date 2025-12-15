@@ -49,7 +49,6 @@ Per avere valori di **A** inserisci **MMP oltre i 30 minuti** (opzionale).
 
 # =========================
 # Input dati
-st.subheader("Inserisci i dati")
 num_rows = st.number_input("Numero di punti dati", min_value=4, max_value=20, value=4, step=1)
 
 # =========================
