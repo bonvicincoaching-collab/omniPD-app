@@ -67,7 +67,7 @@ for i in range(num_rows):
 # =========================
 
 # Markdown con font più piccolo
-st.markdown("<div style='font-size:12px; margin-bottom:5px;'><b>Opzionale...inserisci t per sapere quanti watt riesci a fare</b></div>", unsafe_allow_html=True)
+st.markdown("<div style='font-size:12px; margin-bottom:5px;'><b>opzionale...inserisci t per sapere quanti watt riesci a fare</b></div>", unsafe_allow_html=True)
 
 # Creiamo una colonna singola per input e output allineati a sinistra
 col = st.columns([1])[0]
@@ -86,9 +86,11 @@ if "params_computed" in st.session_state:
         t_calc,
         p["CP_b"], p["W_prime_b"], p["Pmax_b"], p["A_b"], p["B_b"]
     )
-    col.markdown(f"**{t_calc}s → {int(round(P_calc))} W**")
+    time_label = _format_time_label_custom(t_calc)  # converte in mm:ss
+    col.markdown(f"**{time_label} → {int(round(P_calc))} W**")
 else:
-    col.markdown(f"**{t_calc}s → W**")
+    time_label = _format_time_label_custom(t_calc)
+    col.markdown(f"**{time_label} → W**")
 
 # =========================
 # Pulsante Calcola
