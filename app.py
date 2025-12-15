@@ -57,7 +57,7 @@ Per avere valori di **A** inserisci **MMP oltre i 30 minuti** (opzionale).
 
 # =========================
 # Input dati manuale
-num_rows = st.number_input("Numero di punti dati", min_value=3, max_value=20, value=4, step=1)
+num_rows = st.number_input("Numero di punti dati", min_value=4, max_value=20, value=4, step=1)
 time_values = []
 power_values = []
 
@@ -175,7 +175,7 @@ def calcola_e_mostra(time_values, power_values):
 # =========================
 # Pulsante Calcola
 if st.button("Calcola"):
-    if len(time_values) >= 3:
+    if len(time_values) >= 4:
         calcola_e_mostra(time_values, power_values)
 
 # =========================
