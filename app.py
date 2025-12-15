@@ -274,7 +274,7 @@ if "params_computed" in st.session_state:
     time_label = _format_time_label_custom(t_calc)
     
     # Mostra valore calcolato
-    col_calc.markdown(f"**{time_label} → {int(round(P_calc))} W** | (per aggiornare usare il pulsante \"Calcola\" O \"Importa dati CSV e calcola\")")
+    col_calc.markdown(f"**{time_label} → {int(round(P_calc))} W** | (per aggiornare "Enter" dopo aver cambiato t)")
     
     # Se c'è CSV, mostra sotto il valore reale più vicino
     if "time_values_csv" in st.session_state and "power_values_csv" in st.session_state:
@@ -282,7 +282,7 @@ if "params_computed" in st.session_state:
         powers_csv = np.array(st.session_state["power_values_csv"])
         idx = np.argmin(np.abs(times_csv - t_calc))
         P_real_csv = powers_csv[idx]
-        col_calc.markdown(f"**Valore reale CSV:** {int(round(P_real_csv))} W")
+        col_calc.markdown(f"Valore reale CSV: {int(round(P_real_csv))} W")
 else:
     col_calc.markdown("⚠ Per calcolare, scrollare e premere il 'Calcola' in alto'")
 
