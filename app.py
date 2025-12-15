@@ -205,7 +205,7 @@ if uploaded_file is not None:
 
         # Inserimento filtro per tempo massimo
         max_time = st.number_input(
-            "Valore massimo tempo (s) da importare",
+            "(opzionale) Valore massimo di tempo (s) da importare. **⚠ sconsigliati valori inferiori a 1200-1800s ⚠**",
             min_value=1,
             value=int(df_csv[col_time].max())
         )
