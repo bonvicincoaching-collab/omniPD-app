@@ -105,7 +105,7 @@ st.markdown("<div style='font-size:14px; margin-bottom:5px;'><b>opzionale...inse
 col = st.columns([1])[0]
 
 # Input tempo
-t_str = col.text_input("Inserisci tempo (s)", value="60", key="t_calc_text")
+t_str = col.text_input("Inserisci tempo (s)", value="1200", key="t_calc_text")
 try:
     t_calc = max(1, int(t_str))  # forza tempo ≥ 1 s
 except:
