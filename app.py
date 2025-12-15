@@ -120,8 +120,14 @@ def calcola_e_mostra(time_values, power_values):
     durations_s = [5*60, 10*60, 15*60, 20*60, 30*60]
     predicted_powers = [int(round(float(ompd_power(t, CP, W_prime, Pmax, A)))) for t in durations_s]
 
+    # =========================
     # Mostra riquadri
-    col1, col2, col3 = st.columns(3)
+    if "time_values_csv" in st.session_state and "power_values_csv" in st.session_state:
+        col1, col2, col3, col4 = st.columns(4)
+    else:
+        col1, col2, col3 = st.columns(3)
+        col4 = None
+
     with col1:
         st.markdown("**Parametri stimati**")
         st.markdown(f"CP: {int(round(CP))} W")
@@ -129,17 +135,29 @@ def calcola_e_mostra(time_values, power_values):
         st.markdown(f"99% W'eff at {_format_time_label_custom(t_99)}")
         st.markdown(f"Pmax: {int(round(Pmax))} W")
         st.markdown(f"A: {A:.2f}")
+
     with col2:
         st.markdown("**Residual summary**")
         st.markdown(f"RMSE: {RMSE:.2f} W")
         st.markdown(f"MAE: {MAE:.2f} W")
         st.markdown(f"Bias: {bias_real:.2f} W")
+
     with col3:
         st.markdown("**Valori teorici**")
         for t, p in zip(durations_s, predicted_powers):
             minutes = t // 60
             st.markdown(f"{minutes}m: {p} W")
 
+    if col4 is not None:
+        with col4:
+            st.markdown("**Valori reali CSV**")
+            df_csv_values = pd.DataFrame({
+                "Tempo (s)": st.session_state["time_values_csv"],
+                "Potenza (W)": st.session_state["power_values_csv"]
+            })
+            st.dataframe(df_csv_values, height=200)
+
+    # =========================
     # Grafici
     T_plot = np.logspace(np.log10(1.0), np.log10(max(max(df["t"])*1.1, 180*60)), 500)
     fig1 = go.Figure()
@@ -155,7 +173,8 @@ def calcola_e_mostra(time_values, power_values):
     st.plotly_chart(fig1)
 
     fig2 = go.Figure()
-    fig2.add_trace(go.Scatter(x=df["t"], y=residuals, mode='lines+markers', name="Residuals", marker=dict(symbol='x', size=8), line=dict(color='red')))
+    fig2.add_trace(go.Scatter(x=df["t"], y=residuals, mode='lines+markers', name="Residuals",
+                              marker=dict(symbol='x', size=8), line=dict(color='red')))
     fig2.add_hline(y=0, line=dict(color='black', dash='dash'))
     fig2.update_xaxes(type='log', title_text="Time (s)")
     fig2.update_yaxes(title_text="Residuals (W)")
@@ -166,7 +185,8 @@ def calcola_e_mostra(time_values, power_values):
     fig3.add_trace(go.Scatter(x=T_plot_w, y=Weff_plot, mode='lines', name="W'eff", line=dict(color='green')))
     fig3.add_hline(y=w_99, line=dict(color='blue', dash='dash'))
     fig3.add_vline(x=t_99, line=dict(color='blue', dash='dash'))
-    fig3.add_annotation(x=t_99, y=W_99, text=f"99% W'eff at {_format_time_label_custom(t_99)}", showarrow=True, arrowhead=2)
+    fig3.add_annotation(x=t_99, y=W_99, text=f"99% W'eff at {_format_time_label_custom(t_99)}",
+                        showarrow=True, arrowhead=2)
     fig3.update_xaxes(title_text="Time (s)")
     fig3.update_yaxes(title_text="W'eff (J)")
     fig3.update_layout(title="OmPD Effective W'", hovermode="x unified", height=700)
