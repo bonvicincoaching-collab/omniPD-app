@@ -197,7 +197,7 @@ uploaded_file = st.file_uploader("(opzionale) Carica un file CSV", type=["csv"])
 if uploaded_file is not None:
     try:
         df_csv = pd.read_csv(uploaded_file)
-        st.dataframe(df_csv.head(20), height=200, width=900)
+        st.dataframe(df_csv.head(20), height=200)
         col_time = st.selectbox("Seleziona la colonna TEMPO", options=df_csv.columns)
         col_power = st.selectbox("Seleziona la colonna POTENZA", options=df_csv.columns)
 
