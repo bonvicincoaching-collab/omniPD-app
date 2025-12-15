@@ -52,7 +52,6 @@ for i in range(num_rows):
     t_str = cols[0].text_input(f"Time (s) #{i+1}", value="", key=f"time_{i}")
     P_str = cols[1].text_input(f"Power (W) #{i+1}", value="", key=f"power_{i}")
     
-    # converte solo se numerico e >0
     try:
         t_val = int(t_str)
         P_val = int(P_str)
@@ -60,22 +59,21 @@ for i in range(num_rows):
             time_values.append(t_val)
             power_values.append(P_val)
     except:
-        pass  # ignora input vuoti o non numerici
+        pass
 
 # =========================
 # Calcolatore rapido prima del tasto Calcola
 st.markdown("**Quanti watt faccio per questo tempo?**", unsafe_allow_html=True)
 
-# Cellula e watt calcolati sulla stessa riga
-t_calc = st.number_input("", min_value=1, value=60, step=1, format="%d", key="t_calc_minimal")
-col_calc = st.columns([1,1])
+col_calc1, col_calc2 = st.columns([1,1], gap="small")
+t_calc = col_calc1.number_input("", min_value=1, value=60, step=1, format="%d", key="t_calc_minimal")
 
 if "params_computed" in st.session_state:
     params = st.session_state["params_computed"]
     P_calc = ompd_power_with_bias(t_calc, params["CP_b"], params["W_prime_b"], params["Pmax_b"], params["A_b"], params["B_b"])
-    col_calc[0].write(f"{t_calc}s → {int(round(P_calc))} W")
+    col_calc2.write(f"{int(round(P_calc))} W")
 else:
-    col_calc[0].write(f"{t_calc}s → W")
+    col_calc2.write("W")
 
 # =========================
 # Pulsante Calcola
@@ -93,12 +91,14 @@ if st.button("Calcola", key="calcola_btn"):
         # Fit OmPD con bias
         initial_guess_bias = [np.percentile(df["P"],30),20000,df["P"].max(),5,0]
         param_bounds = ([0,0,0,0,-100], [1000,50000,5000,100,100])
-        params_bias, _ = curve_fit(ompd_power_with_bias,
-                                   df["t"].values.astype(float),
-                                   df["P"].values.astype(float),
-                                   p0=initial_guess_bias,
-                                   bounds=param_bounds,
-                                   maxfev=20000)
+        params_bias, _ = curve_fit(
+            ompd_power_with_bias,
+            df["t"].values.astype(float),
+            df["P"].values.astype(float),
+            p0=initial_guess_bias,
+            bounds=param_bounds,
+            maxfev=20000
+        )
         CP_b, W_prime_b, Pmax_b, A_b, B_b = params_bias
         P_pred = ompd_power_with_bias(df["t"].values.astype(float), *params_bias)
         residuals = df["P"].values.astype(float) - P_pred
@@ -154,8 +154,12 @@ if st.button("Calcola", key="calcola_btn"):
         fig1 = go.Figure()
         fig1.add_trace(go.Scatter(x=df["t"], y=df["P"], mode='markers', name="Dati reali", marker=dict(symbol='x', size=10)))
         fig1.add_trace(go.Scatter(x=T_plot, y=ompd_power(T_plot,*params), mode='lines', name="OmPD"))
-        fig1.add_trace(go.Scatter(x=T_plot[T_plot<=TCPMAX], y=ompd_power_short(T_plot[T_plot<=TCPMAX], CP, W_prime, Pmax),
-                                  mode='lines', name="Curva base t ≤ TCPMAX", line=dict(dash='dash', color='blue')))
+        fig1.add_trace(go.Scatter(
+            x=T_plot[T_plot<=TCPMAX],
+            y=ompd_power_short(T_plot[T_plot<=TCPMAX], CP, W_prime, Pmax),
+            mode='lines', name="Curva base t ≤ TCPMAX",
+            line=dict(dash='dash', color='blue')
+        ))
         fig1.add_hline(y=CP, line=dict(color='red', dash='dash'), annotation_text="CP", annotation_position="top right")
         fig1.add_vline(x=TCPMAX, line=dict(color='blue', dash='dot'), annotation_text="TCPMAX", annotation_position="bottom left")
         fig1.update_xaxes(type='log', title_text="Time (s)")
@@ -165,7 +169,10 @@ if st.button("Calcola", key="calcola_btn"):
         # =========================
         # Grafico Residuals
         fig2 = go.Figure()
-        fig2.add_trace(go.Scatter(x=df["t"], y=residuals, mode='lines+markers', name="Residuals", marker=dict(symbol='x', size=8), line=dict(color='red')))
+        fig2.add_trace(go.Scatter(
+            x=df["t"], y=residuals, mode='lines+markers', name="Residuals",
+            marker=dict(symbol='x', size=8), line=dict(color='red')
+        ))
         fig2.add_hline(y=0, line=dict(color='black', dash='dash'))
         fig2.update_xaxes(type='log', title_text="Time (s)")
         fig2.update_yaxes(title_text="Residuals (W)")
