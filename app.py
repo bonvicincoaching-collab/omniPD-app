@@ -66,20 +66,25 @@ for i in range(num_rows):
 # Calcolatore rapido prima del tasto Calcola
 st.markdown("### Calcolatore rapido")
 
-# Creiamo tre colonne
 col_label, col_input, col_output = st.columns([2, 1, 1])
 
 # Testo
 col_label.write("**Quanti watt faccio per questo tempo?**")
 
-# Input tempo (s)
-t_calc = col_input.number_input("", min_value=1, value=60, step=1, format="%d", key="t_calc_minimal")
+# Input tempo come text_input (più compatto verticalmente)
+t_str = col_input.text_input("", value="60", key="t_calc_text")
+try:
+    t_calc = int(t_str)
+    if t_calc < 1:
+        t_calc = 1
+except:
+    t_calc = 60
 
 # Output potenza stimata
 if "params_computed" in st.session_state:
     params = st.session_state["params_computed"]
     P_calc = ompd_power_with_bias(
-        t_calc, 
+        t_calc,
         params["CP_b"], params["W_prime_b"], params["Pmax_b"], params["A_b"], params["B_b"]
     )
     col_output.write(f"**{t_calc}s → {int(round(P_calc))} W**")
