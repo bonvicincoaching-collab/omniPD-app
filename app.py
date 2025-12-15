@@ -44,15 +44,34 @@ st.write("Inserisci almeno 4 punti dati, tra cui sprint: tempo (s) e potenza (W)
 st.subheader("Inserisci i dati")
 num_rows = st.number_input("Numero di punti dati", min_value=4, max_value=20, value=4, step=1)
 
+# =========================
+# Input dati con label personalizzate
+# =========================
+
+time_labels = ["Sprint", "Test 1", "Test 2", "Test 3", "Altro"]
+
 time_values = []
 power_values = []
 
 for i in range(num_rows):
     cols = st.columns(2)
-    t_str = cols[0].text_input(f"Time (s) #{i+1}", value="", key=f"time_{i}")
-    P_str = cols[1].text_input(f"Power (W) #{i+1}", value="", key=f"power_{i}")
-    
-    # converte solo se numerico e >0
+
+    label = time_labels[i] if i < len(time_labels) else f"Test {i+1}"
+
+    # Time input
+    t_str = cols[0].text_input(
+        f"{label} – Time (s)",
+        value="",
+        key=f"time_{i}"
+    )
+
+    # Power input
+    P_str = cols[1].text_input(
+        f"{label} – Power (W)",
+        value="",
+        key=f"power_{i}"
+    )
+
     try:
         t_val = int(t_str)
         P_val = int(P_str)
@@ -60,7 +79,7 @@ for i in range(num_rows):
             time_values.append(t_val)
             power_values.append(P_val)
     except:
-        pass  # ignora input vuoti o non numerici
+        pass
 
 # =========================
 # Calcolatore rapido compatto, output sotto label
