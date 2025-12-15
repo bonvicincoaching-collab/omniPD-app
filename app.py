@@ -122,6 +122,11 @@ for i in range(num_rows):
     except:
         pass
 
+# Se esistono dati CSV importati, sovrascriviamo quelli manuali
+if "time_values_csv" in st.session_state and "power_values_csv" in st.session_state:
+    time_values = st.session_state["time_values_csv"]
+    power_values = st.session_state["power_values_csv"]
+
 # =========================
 # Calcolatore rapido compatto, output sotto label
 # =========================
