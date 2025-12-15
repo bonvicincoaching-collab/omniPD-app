@@ -64,7 +64,9 @@ for i in range(num_rows):
 
 # =========================
 # Calcolatore rapido prima del tasto Calcola
-st.write("**Quanti watt faccio per questo tempo?**")
+st.markdown("**Quanti watt faccio per questo tempo?**", unsafe_allow_html=True)
+
+# Cellula e watt calcolati sulla stessa riga
 t_calc = st.number_input("", min_value=1, value=60, step=1, format="%d", key="t_calc_minimal")
 col_calc = st.columns([1,1])
 
