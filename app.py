@@ -217,9 +217,8 @@ if uploaded_file is not None:
 
 # =========================
 # Calcolatore rapido funzionante
-st.markdown("<div style='font-size:14px; margin-bottom:5px;'><b>Opzionale: inserisci t per sapere quanti watt riesci a fare</b></div>", unsafe_allow_html=True)
 col_calc = st.columns([1])[0]
-t_str = col_calc.text_input("Inserisci tempo (s)", value="1200", key="t_calc_final")
+t_str = col_calc.text_input("opzionale: inserisci t (in s) per sapere quanti watt riesci a fare", value="1200", key="t_calc_final")
 try:
     t_calc = max(1, int(t_str))
 except Exception:
@@ -234,4 +233,4 @@ if "params_computed" in st.session_state:
     time_label = _format_time_label_custom(t_calc)
     col_calc.markdown(f"**{time_label} → {int(round(P_calc))} W**")
 else:
-    col_calc.markdown("⚠ Calcola prima i parametri con 'Calcola' o importa un CSV")
+    col_calc.markdown("per calcolare, scrollare e premere il 'Calcola' in alto'")
