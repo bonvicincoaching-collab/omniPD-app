@@ -147,19 +147,21 @@ def calcola_e_mostra(time_values, power_values):
         for t, p in zip(durations_s, predicted_powers):
             minutes = t // 60
             st.markdown(f"{minutes}m: {p} W")
-
+ 
     if col4 is not None:
          with col4:
-             st.markdown("**Valori reali CSV (match teorici)**")
-             # Trasforma le durate in secondi
-             match_durations = durations_s
-             # Calcola la potenza stimata dalla curva OmPD per queste durate
-             P_match = [int(round(float(ompd_power(t, CP, W_prime, Pmax, A)))) for t in match_durations]
-             df_match = pd.DataFrame({
-                 "Durata": [f"{t//60}m" for t in match_durations],
-                 "Potenza stimata (W)": P_match
-             })
-             st.dataframe(df_match, height=200)
+             st.markdown("**Valori reali per stesse durate**")
+             # Durate corrispondenti a quelle teoriche
+             match_durations = durations_s  # 5,10,15,20,30 minuti in secondi
+             # Per ciascuna durata, trova il valore reale dal CSV più vicino al tempo
+             times_csv = np.array(st.session_state["time_values_csv"])
+             powers_csv = np.array(st.session_state["power_values_csv"])
+             for t in match_durations:
+                 idx = np.argmin(np.abs(times_csv - t))
+                 P_real = powers_csv[idx]
+                 minutes = t // 60
+                 st.markdown(f"{minutes}m: {int(round(P_real))} W")
+
 
 
     # =========================
