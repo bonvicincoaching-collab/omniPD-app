@@ -284,5 +284,5 @@ if "params_computed" in st.session_state:
         P_real_csv = powers_csv[idx]
         col_calc.markdown(f"Valore reale CSV: {int(round(P_real_csv))} W")
 else:
-    col_calc.markdown("⚠ Per calcolare è necessario importare CSV O 'calcolare con i valori manuali'")
+    col_calc.markdown("⚠ Per calcolare è necessario importare CSV O calcolare con i valori manuali")
 
