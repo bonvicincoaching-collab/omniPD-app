@@ -59,7 +59,7 @@ Per avere valori di **A** inserisci **MMP oltre i 30 minuti** (opzionale).
 # PDF locali
 pdf_files = ["Guida rapida_ come usare il calcolatore OmniPD.pdf",
              "tutorial CP-omniPD.pdf"]
-pdf_names = ["Guida rapida: come usare il calcolatore OmniPD",
+pdf_names = ["Guida rapida: come usare il calcolatore",
              "Tutorial CP-omniPD"]
 
 for pdf_file, pdf_name in zip(pdf_files, pdf_names):
