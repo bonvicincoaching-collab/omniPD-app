@@ -51,7 +51,7 @@ st.markdown(
 Inserisci almeno **4 punti dati** (tra cui **sprint**) tempo (s) e potenza (W).  
 Oppure, più in basso ⬇️ puoi caricare un CSV con i dati.  
 Per avere valori di **A** inserisci **MMP oltre i 30 minuti** (opzionale).  
-**⚠⚠grafici work in progress...⚠⚠**
+**⚠⚠grafici work in progress⚠⚠**
 """,
     unsafe_allow_html=True
 )
