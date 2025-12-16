@@ -89,7 +89,7 @@ for pdf_file, pdf_name in zip(pdf_files, pdf_names):
 # Paper 
 st.markdown(
     '<a href="https://pubmed.ncbi.nlm.nih.gov/32131692/" '
-    'target="_blank" style="text-decoration:none; color:#1a0dab;">📄 Paper</a>',
+    'target="_blank" style="text-decoration:none; color:#0d6efd;">📄 Paper</a>',
     unsafe_allow_html=True
 )
 
