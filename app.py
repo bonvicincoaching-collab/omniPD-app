@@ -86,9 +86,8 @@ for pdf_file, pdf_name in zip(pdf_files, pdf_names):
             )
 
 # =========================
-# Link al paper sotto i PDF
-st.markdown("📄 Paper:")
-st.markdown("[Apri il paper](https://pubmed.ncbi.nlm.nih.gov/32131692/)")
+# Paper 
+st.markdown("[📄 Paper](https://pubmed.ncbi.nlm.nih.gov/32131692/)")
 
 # =========================
 # Input dati manuale
