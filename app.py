@@ -56,8 +56,8 @@ Per avere valori di **A** inserisci **MMP oltre i 30 minuti** (opzionale).
 
 # =========================
 # PDF locali
-pdf_files = ["Guida rapida_ come usare il calcolatore OmniPD.pdf",
-             "tutorial CP-omniPD.pdf"]
+pdf_files = ["tutorial_fast.pdf",
+             "guida_rapida_modello.pdf"]
 pdf_names = ["Tutorial fast: come usare il calcolatore",
              "Guida al profilo di potenza omniPD"]
 
@@ -89,7 +89,7 @@ for pdf_file, pdf_name in zip(pdf_files, pdf_names):
 # Paper 
 st.markdown(
     '<a href="https://pubmed.ncbi.nlm.nih.gov/32131692/" '
-    'target="_blank" style="text-decoration:none; color:#0d6efd;">📄 Paper</a>',
+    'target="_blank" style="text-decoration:none; color:#47c3f0;">📄 Paper</a>',
     unsafe_allow_html=True
 )
 
