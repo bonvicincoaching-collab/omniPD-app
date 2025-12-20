@@ -204,24 +204,44 @@ def calcola_e_mostra(time_values, power_values):
 
     # =========================
     # Grafici
+    # ========================
+    # Funzione per convertire secondi in hh:mm:ss
+    def sec_to_hms(seconds):
+        h = int(seconds // 3600)
+        m = int((seconds % 3600) // 60)
+        s = int(seconds % 60)
+        if h > 0:
+            return f"{h}h{m}m{s}s"
+        elif m > 0:
+            return f"{m}m{s}s"
+        else:
+            return f"{s}s"
+        
+    # Grafico OmPD Curve
     T_plot = np.logspace(np.log10(1.0), np.log10(max(max(df["t"])*1.1, 180*60)), 500)
     fig1 = go.Figure()
     fig1.add_trace(go.Scatter(x=df["t"], y=df["P"], mode='markers', name="Dati reali", marker=dict(symbol='x', size=10)))
     fig1.add_trace(go.Scatter(x=T_plot, y=ompd_power(T_plot,*params), mode='lines', name="OmPD"))
     fig1.add_trace(go.Scatter(x=T_plot[T_plot<=TCPMAX], y=ompd_power_short(T_plot[T_plot<=TCPMAX], CP, W_prime, Pmax),
-                              mode='lines', name="Curva base t ≤ TCPMAX", line=dict(dash='dash', color='blue')))
+                            mode='lines', name="Curva base t ≤ TCPMAX", line=dict(dash='dash', color='blue')))
     fig1.add_hline(y=CP, line=dict(color='red', dash='dash'), annotation_text="CP", annotation_position="top right")
     fig1.add_vline(x=TCPMAX, line=dict(color='blue', dash='dot'), annotation_text="TCPMAX", annotation_position="bottom left")
-    fig1.update_xaxes(type='log', title_text="Time (s)")
+
+    # Tick logaritmici personalizzati con formato hh:mm:ss
+    x_ticks = np.logspace(np.log10(1.0), np.log10(max(max(df["t"])*1.1, 180*60)), 10)
+    x_ticklabels = [sec_to_hms(t) for t in x_ticks]
+
+    fig1.update_xaxes(
+        type='log',
+        title_text="Time",
+        tickvals=x_ticks,
+        ticktext=x_ticklabels
+    )
     fig1.update_yaxes(title_text="Power (W)")
-    fig1.update_layout(
-    title="OmPD Curve",
-    hovermode="x unified",
-    height=700,
-    showlegend=False  # <-- aggiunto per rimuovere la legenda
-)
+    fig1.update_layout(title="OmPD Curve", hovermode="x unified", height=700, showlegend=False)
     st.plotly_chart(fig1)
 
+    # Grafico Residuals
     fig2 = go.Figure()
     fig2.add_trace(go.Scatter(x=df["t"], y=residuals, mode='lines+markers', name="Residuals",
                               marker=dict(symbol='x', size=8), line=dict(color='red')))
@@ -231,6 +251,7 @@ def calcola_e_mostra(time_values, power_values):
     fig2.update_layout(title="Residuals", hovermode="x unified", height=700)
     st.plotly_chart(fig2)
 
+    # Grafico W'eff
     fig3 = go.Figure()
     fig3.add_trace(go.Scatter(x=T_plot_w, y=Weff_plot, mode='lines', name="W'eff", line=dict(color='green')))
     fig3.add_hline(y=w_99, line=dict(color='blue', dash='dash'))
