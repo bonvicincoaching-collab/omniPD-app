@@ -203,32 +203,15 @@ def calcola_e_mostra(time_values, power_values):
                  st.markdown(f"{minutes}m: {int(round(P_real))} W")
 
     # =========================
-    # Helper per formattare secondi hh:mm:ss
-    def format_seconds_to_hms(seconds):
-        h = int(seconds // 3600)
-        m = int((seconds % 3600) // 60)
-        s = int(seconds % 60)
-        if h > 0:
-            return f"{h}h{m:02d}m{s:02d}s"
-        elif m > 0:
-            return f"{m}m{s:02d}s"
-        else:
-            return f"{s}s"
-
-    # =========================
     # Grafici
+    # =========================
     T_plot = np.logspace(np.log10(1.0), np.log10(max(max(df["t"])*1.1, 180*60)), 500)
-
-    # --- Tick personalizzati asse x ---
-    tick_vals = np.logspace(np.log10(1), np.log10(max(df["t"].max(), 180*60)), 8)
-    tick_texts = [format_seconds_to_hms(val) for val in tick_vals]
 
     # --- Fig1: OmPD Curve ---
     fig1 = go.Figure()
-    fig1.add_trace(go.Scatter(x=df["t"], y=df["P"], mode='markers', name="Dati misurati",
+    fig1.add_trace(go.Scatter(x=df["t"], y=df["P"], mode='markers', name="Dati reali",
                             marker=dict(symbol='x', size=10)))
-    fig1.add_trace(go.Scatter(x=T_plot, y=ompd_power(T_plot,*params), mode='lines', name="OmPD stimata",
-                            line=dict(color='orange')))
+    fig1.add_trace(go.Scatter(x=T_plot, y=ompd_power(T_plot,*params), mode='lines', name="OmPD"))
     fig1.add_trace(go.Scatter(x=T_plot[T_plot<=TCPMAX],
                             y=ompd_power_short(T_plot[T_plot<=TCPMAX], CP, W_prime, Pmax),
                             mode='lines', name="Curva base t ≤ TCPMAX",
@@ -237,8 +220,7 @@ def calcola_e_mostra(time_values, power_values):
                 annotation_text="CP", annotation_position="top right")
     fig1.add_vline(x=TCPMAX, line=dict(color='blue', dash='dot'),
                 annotation_text="TCPMAX", annotation_position="bottom left")
-    fig1.update_xaxes(type='log', title_text="Time",
-                    tickvals=tick_vals, ticktext=tick_texts)
+    fig1.update_xaxes(type='log', title_text="Time (s)")
     fig1.update_yaxes(title_text="Power (W)")
     fig1.update_layout(
         title="OmPD Curve",
@@ -246,6 +228,7 @@ def calcola_e_mostra(time_values, power_values):
         margin=dict(l=60, r=60, t=60, b=60),
         hovermode="x unified",
         height=650,
+        showlegend=False
     )
     st.plotly_chart(fig1, use_container_width=True)
 
@@ -255,15 +238,14 @@ def calcola_e_mostra(time_values, power_values):
                             name="Residuals", marker=dict(symbol='x', size=8),
                             line=dict(color='red')))
     fig2.add_hline(y=0, line=dict(color='black', dash='dash'))
-    fig2.update_xaxes(type='log', title_text="Time",
-                    tickvals=tick_vals, ticktext=tick_texts)
+    fig2.update_xaxes(type='log', title_text="Time (s)")
     fig2.update_yaxes(title_text="Residuals (W)")
     fig2.update_layout(
         title="Residuals",
         autosize=True,
         margin=dict(l=60, r=60, t=60, b=60),
         hovermode="x unified",
-        height=650,
+        height=650
     )
     st.plotly_chart(fig2, use_container_width=True)
 
@@ -275,15 +257,14 @@ def calcola_e_mostra(time_values, power_values):
     fig3.add_vline(x=t_99, line=dict(color='blue', dash='dash'))
     fig3.add_annotation(x=t_99, y=W_99, text=f"99% W'eff at {_format_time_label_custom(t_99)}",
                         showarrow=True, arrowhead=2)
-    fig3.update_xaxes(title_text="Time",
-                    tickvals=tick_vals, ticktext=tick_texts)
+    fig3.update_xaxes(title_text="Time (s)")
     fig3.update_yaxes(title_text="W'eff (J)")
     fig3.update_layout(
         title="OmPD Effective W'",
         autosize=True,
         margin=dict(l=60, r=60, t=60, b=60),
         hovermode="x unified",
-        height=650,
+        height=650
     )
     st.plotly_chart(fig3, use_container_width=True)
 
