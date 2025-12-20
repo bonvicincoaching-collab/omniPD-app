@@ -209,50 +209,29 @@ def calcola_e_mostra(time_values, power_values):
 
     # --- Fig1: OmPD Curve ---
     fig1 = go.Figure()
-    fig1.add_trace(go.Scatter(
-        x=df["t"],
-        y=df["P"],
-        mode='markers',
-        name="Dati misurati",
-        marker=dict(symbol='x', size=10)
-    ))
-    fig1.add_trace(go.Scatter(
-        x=T_plot,
-        y=ompd_power(T_plot, *params),
-        mode='lines',
-        name="OmPD stimata",
-        line=dict(color='orange')
-    ))
-    fig1.add_trace(go.Scatter(
-        x=T_plot[T_plot <= TCPMAX],
-        y=ompd_power_short(T_plot[T_plot <= TCPMAX], CP, W_prime, Pmax),
-        mode='lines',
-        name="Curva base t ≤ TCPMAX",
-        line=dict(dash='dash', color='blue')
-    ))
-    fig1.add_hline(
-        y=CP,
-        line=dict(color='red', dash='dash'),
-        annotation_text="CP",
-        annotation_position="top right"
-    )
-    fig1.add_vline(
-        x=TCPMAX,
-        line=dict(color='blue', dash='dot'),
-        annotation_text="TCPMAX",
-        annotation_position="bottom left"
-    )
-    # Layout responsivo e margini
+    fig1.add_trace(go.Scatter(x=df["t"], y=df["P"], mode='markers', name="Dati reali",
+                            marker=dict(symbol='x', size=10)))
+    fig1.add_trace(go.Scatter(x=T_plot, y=ompd_power(T_plot,*params), mode='lines', name="OmPD"))
+    fig1.add_trace(go.Scatter(x=T_plot[T_plot<=TCPMAX],
+                            y=ompd_power_short(T_plot[T_plot<=TCPMAX], CP, W_prime, Pmax),
+                            mode='lines', name="Curva base t ≤ TCPMAX",
+                            line=dict(dash='dash', color='blue')))
+    fig1.add_hline(y=CP, line=dict(color='red', dash='dash'),
+                annotation_text="CP", annotation_position="top right")
+    fig1.add_vline(x=TCPMAX, line=dict(color='blue', dash='dot'),
+                annotation_text="TCPMAX", annotation_position="bottom left")
+    fig1.update_xaxes(type='log', title_text="Time (s)")
+    fig1.update_yaxes(title_text="Power (W)")
     fig1.update_layout(
         title="OmPD Curve",
         autosize=True,
         margin=dict(l=60, r=60, t=60, b=60),
         hovermode="x unified",
         height=650,
+        showlegend=False
     )
-    # Mostra grafico adattandolo al container (desktop e mobile)
     st.plotly_chart(fig1, use_container_width=True)
-    
+
     # --- Fig2: Residuals ---
     fig2 = go.Figure()
     fig2.add_trace(go.Scatter(x=df["t"], y=residuals, mode='lines+markers',
