@@ -214,7 +214,12 @@ def calcola_e_mostra(time_values, power_values):
     fig1.add_vline(x=TCPMAX, line=dict(color='blue', dash='dot'), annotation_text="TCPMAX", annotation_position="bottom left")
     fig1.update_xaxes(type='log', title_text="Time (s)")
     fig1.update_yaxes(title_text="Power (W)")
-    fig1.update_layout(title="OmPD Curve", hovermode="x unified", height=700)
+    fig1.update_layout(
+    title="OmPD Curve",
+    hovermode="x unified",
+    height=700,
+    showlegend=False  # <-- aggiunto per rimuovere la legenda
+)
     st.plotly_chart(fig1)
 
     fig2 = go.Figure()
