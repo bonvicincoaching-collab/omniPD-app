@@ -228,7 +228,7 @@ def calcola_e_mostra(time_values, power_values):
     fig1.add_vline(x=TCPMAX, line=dict(color='blue', dash='dot'), annotation_text="TCPMAX", annotation_position="bottom left")
 
     # Tick logaritmici personalizzati con formato hh:mm:ss
-    x_ticks = np.logspace(np.log10(1.0), np.log10(max(max(df["t"])*1.1, 180*60)), 10)
+    x_ticks = [1,2,5,10,20,30,60,120,300,600,1200,1800,3600]  # secondi
     x_ticklabels = [sec_to_hms(t) for t in x_ticks]
 
     fig1.update_xaxes(
@@ -239,6 +239,7 @@ def calcola_e_mostra(time_values, power_values):
     )
     fig1.update_yaxes(title_text="Power (W)")
     fig1.update_layout(title="OmPD Curve", hovermode="x unified", height=700, showlegend=False)
+
     st.plotly_chart(fig1)
 
     # Grafico Residuals
