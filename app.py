@@ -206,12 +206,15 @@ def calcola_e_mostra(time_values, power_values):
     # Grafici
     # ========================
     # Funzione per convertire secondi in hh:mm:ss
-    def sec_to_hms(seconds):
+    def sec_to_hms_simple(seconds):
         h = int(seconds // 3600)
         m = int((seconds % 3600) // 60)
         s = int(seconds % 60)
-        if h > 0:
-            return f"{h}h{m}m{s}s"
+        
+        if h > 0 and m == 0 and s == 0:
+            return f"{h}h"
+        elif m > 0 and s == 0:
+            return f"{m}m"
         elif m > 0:
             return f"{m}m{s}s"
         else:
@@ -229,7 +232,7 @@ def calcola_e_mostra(time_values, power_values):
 
     # Tick logaritmici personalizzati con formato hh:mm:ss
     x_ticks = [1,2,5,10,20,30,60,120,300,600,1200,1800,3600]  # secondi
-    x_ticklabels = [sec_to_hms(t) for t in x_ticks]
+    x_ticklabels = [sec_to_hms_simple(t) for t in x_ticks]
 
     fig1.update_xaxes(
         type='log',
@@ -239,7 +242,6 @@ def calcola_e_mostra(time_values, power_values):
     )
     fig1.update_yaxes(title_text="Power (W)")
     fig1.update_layout(title="OmPD Curve", hovermode="x unified", height=700, showlegend=False)
-
     st.plotly_chart(fig1)
 
     # Grafico Residuals
