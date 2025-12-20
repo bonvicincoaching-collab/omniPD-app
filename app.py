@@ -225,7 +225,7 @@ def calcola_e_mostra(time_values, power_values):
     x_ticklabels = [sec_to_hms_simple(t) for t in x_ticks]
 
     # =========================
-    # Fig1: OmPD Curve senza legenda visibile ma curve nascondibili
+    # Fig1: OmPD Curve senza curva TCPMAX
     T_plot = np.logspace(np.log10(1.0), np.log10(max(max(df["t"])*1.1, 180*60)), 500)
     fig1 = go.Figure()
 
@@ -234,8 +234,8 @@ def calcola_e_mostra(time_values, power_values):
         x=df["t"],
         y=df["P"],
         mode='markers',
+        marker=dict(symbol='x', size=10),
         name="Dati reali",
-        showlegend=False,  # legenda nascosta
         hovertemplate='Time: %{customdata}<br>Power: %{y:.0f} W<extra></extra>',
         customdata=[sec_to_hms_simple(t) for t in df["t"]]
     ))
@@ -246,7 +246,6 @@ def calcola_e_mostra(time_values, power_values):
         y=ompd_power(T_plot,*params),
         mode='lines',
         name="OmPD",
-        showlegend=False,  # legenda nascosta
         hovertemplate='Time: %{customdata}<br>Power: %{y:.0f} W<extra></extra>',
         customdata=[sec_to_hms_simple(t) for t in T_plot]
     ))
@@ -262,16 +261,8 @@ def calcola_e_mostra(time_values, power_values):
         tickvals=x_ticks,
         ticktext=x_ticklabels
     )
-    # Asse y parte da 0
     fig1.update_yaxes(title_text="Power (W)", range=[0, max(df["P"].max()*1.1, Pmax*1.1)])
-
-    fig1.update_layout(
-        title="OmPD Curve",
-        hovermode="x unified",
-        height=700,
-        showlegend=False  # legenda nascosta
-    )
-
+    fig1.update_layout(title="OmPD Curve", hovermode="x unified", height=700, showlegend=False)
     st.plotly_chart(fig1)
 
     # =========================
