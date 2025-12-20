@@ -261,7 +261,7 @@ def calcola_e_mostra(time_values, power_values):
         tickvals=x_ticks,
         ticktext=x_ticklabels
     )
-    fig1.update_yaxes(title_text="Power (W)")
+    fig1.update_yaxes(title_text="Power (W)", range=[0, max(df["P"].max()*1.1, Pmax*1.1)])
     fig1.update_layout(title="OmPD Curve", hovermode="x unified", height=700, showlegend=False)
     st.plotly_chart(fig1)
 
