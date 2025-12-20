@@ -221,7 +221,7 @@ def calcola_e_mostra(time_values, power_values):
             return f"{s}s"
 
     # Tick logaritmici rotondi comuni
-    x_ticks = [1,2,5,10,20,30,60,120,300,600,1200,1800,3600]
+    x_ticks = [1,2,5,10,20,30,60,180,300,600,1200,1800,3600]
     x_ticklabels = [sec_to_hms_simple(t) for t in x_ticks]
 
     # =========================
@@ -282,8 +282,9 @@ def calcola_e_mostra(time_values, power_values):
     fig3.update_xaxes(
         type='log',
         title_text="Time",
-        tickvals=x_ticks,
-        ticktext=x_ticklabels
+        tickvals=[1,2,5,10,20,30,60,120,180,240,300],  # tick logaritmici fino a 5 minuti
+        ticktext=[sec_to_hms_simple(t) for t in [1,2,5,10,20,30,60,120,180,240,300]],
+        range=[0, np.log10(300)]  # log scale limitata a 5 minuti
     )
     fig3.update_yaxes(title_text="W'eff (J)")
     fig3.update_layout(title="OmPD Effective W'", hovermode="x unified", height=700, showlegend=False)
