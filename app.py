@@ -225,13 +225,35 @@ def calcola_e_mostra(time_values, power_values):
     x_ticklabels = [sec_to_hms_simple(t) for t in x_ticks]
 
     # =========================
-    # Fig1: OmPD Curve
+    # Fig1: OmPD Curve con tooltip
     T_plot = np.logspace(np.log10(1.0), np.log10(max(max(df["t"])*1.1, 180*60)), 500)
     fig1 = go.Figure()
-    fig1.add_trace(go.Scatter(x=df["t"], y=df["P"], mode='markers', name="Dati reali", marker=dict(symbol='x', size=10)))
-    fig1.add_trace(go.Scatter(x=T_plot, y=ompd_power(T_plot,*params), mode='lines', name="OmPD"))
-    fig1.add_trace(go.Scatter(x=T_plot[T_plot<=TCPMAX], y=ompd_power_short(T_plot[T_plot<=TCPMAX], CP, W_prime, Pmax),
-                            mode='lines', name="Curva base t ≤ TCPMAX", line=dict(dash='dash', color='blue')))
+    fig1.add_trace(go.Scatter(
+        x=df["t"],
+        y=df["P"],
+        mode='markers',
+        marker=dict(symbol='x', size=10),
+        name="Dati reali",
+        hovertemplate='Time: %{customdata}<br>Power: %{y:.0f} W<extra></extra>',
+        customdata=[sec_to_hms_simple(t) for t in df["t"]]
+    ))
+    fig1.add_trace(go.Scatter(
+        x=T_plot,
+        y=ompd_power(T_plot,*params),
+        mode='lines',
+        name="OmPD",
+        hovertemplate='Time: %{customdata}<br>Power: %{y:.0f} W<extra></extra>',
+        customdata=[sec_to_hms_simple(t) for t in T_plot]
+    ))
+    fig1.add_trace(go.Scatter(
+        x=T_plot[T_plot<=TCPMAX],
+        y=ompd_power_short(T_plot[T_plot<=TCPMAX], CP, W_prime, Pmax),
+        mode='lines',
+        name="Curva base t ≤ TCPMAX",
+        line=dict(dash='dash', color='blue'),
+        hovertemplate='Time: %{customdata}<br>Power: %{y:.0f} W<extra></extra>',
+        customdata=[sec_to_hms_simple(t) for t in T_plot[T_plot<=TCPMAX]]
+    ))
     fig1.add_hline(y=CP, line=dict(color='red', dash='dash'), annotation_text="CP", annotation_position="top right")
     fig1.add_vline(x=TCPMAX, line=dict(color='blue', dash='dot'), annotation_text="TCPMAX", annotation_position="bottom left")
 
@@ -246,13 +268,19 @@ def calcola_e_mostra(time_values, power_values):
     st.plotly_chart(fig1)
 
     # =========================
-    # Fig2: Residuals
+    # Fig2: Residuals con tooltip
     residuals = df["P"].values.astype(float) - ompd_power_with_bias(df["t"].values.astype(float), *params_bias)
     fig2 = go.Figure()
-    fig2.add_trace(go.Scatter(x=df["t"], y=residuals, mode='lines+markers', name="Residuals",
-                            marker=dict(symbol='x', size=8), line=dict(color='red')))
+    fig2.add_trace(go.Scatter(
+        x=df["t"],
+        y=residuals,
+        mode='lines+markers',
+        marker=dict(symbol='x', size=8),
+        line=dict(color='red'),
+        hovertemplate='Time: %{customdata}<br>Residual: %{y:.0f} W<extra></extra>',
+        customdata=[sec_to_hms_simple(t) for t in df["t"]]
+    ))
     fig2.add_hline(y=0, line=dict(color='black', dash='dash'))
-
     fig2.update_xaxes(
         type='log',
         title_text="Time",
@@ -264,7 +292,7 @@ def calcola_e_mostra(time_values, power_values):
     st.plotly_chart(fig2)
 
     # =========================
-    # Fig3: W'eff
+    # Fig3: W'eff con tooltip limitato a 5 minuti
     T_plot_w = np.linspace(1, 3*60, 500)
     Weff_plot = w_eff(T_plot_w, W_prime, CP, Pmax)
     W_99 = 0.99 * W_prime
@@ -273,7 +301,14 @@ def calcola_e_mostra(time_values, power_values):
     w_99 = Weff_plot[t_99_idx]
 
     fig3 = go.Figure()
-    fig3.add_trace(go.Scatter(x=T_plot_w, y=Weff_plot, mode='lines', name="W'eff", line=dict(color='green')))
+    fig3.add_trace(go.Scatter(
+        x=T_plot_w,
+        y=Weff_plot,
+        mode='lines',
+        line=dict(color='green'),
+        hovertemplate='Time: %{customdata}<br>W\'eff: %{y:.0f} J<extra></extra>',
+        customdata=[sec_to_hms_simple(t) for t in T_plot_w]
+    ))
     fig3.add_hline(y=w_99, line=dict(color='blue', dash='dash'))
     fig3.add_vline(x=t_99, line=dict(color='blue', dash='dash'))
     fig3.add_annotation(x=t_99, y=W_99, text=f"99% W'eff at {sec_to_hms_simple(t_99)}",
@@ -282,9 +317,9 @@ def calcola_e_mostra(time_values, power_values):
     fig3.update_xaxes(
         type='log',
         title_text="Time",
-        tickvals=[1,2,5,10,20,30,60,120,180,240,300],  # tick logaritmici fino a 5 minuti
+        tickvals=[1,2,5,10,20,30,60,120,180,240,300],
         ticktext=[sec_to_hms_simple(t) for t in [1,2,5,10,20,30,60,120,180,240,300]],
-        range=[0, np.log10(300)]  # log scale limitata a 5 minuti
+        range=[0, np.log10(300)]
     )
     fig3.update_yaxes(title_text="W'eff (J)")
     fig3.update_layout(title="OmPD Effective W'", hovermode="x unified", height=700, showlegend=False)
