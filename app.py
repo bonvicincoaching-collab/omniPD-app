@@ -205,7 +205,7 @@ def calcola_e_mostra(time_values, power_values):
     # =========================
     # Grafici
     # ========================
-    # Funzione per convertire secondi in hh:mm:ss
+    # Funzione per convertire secondi in formato semplificato
     def sec_to_hms_simple(seconds):
         h = int(seconds // 3600)
         m = int((seconds % 3600) // 60)
@@ -219,8 +219,13 @@ def calcola_e_mostra(time_values, power_values):
             return f"{m}m{s}s"
         else:
             return f"{s}s"
-        
-    # Grafico OmPD Curve
+
+    # Tick logaritmici rotondi comuni
+    x_ticks = [1,2,5,10,20,30,60,120,300,600,1200,1800,3600]
+    x_ticklabels = [sec_to_hms_simple(t) for t in x_ticks]
+
+    # =========================
+    # Fig1: OmPD Curve
     T_plot = np.logspace(np.log10(1.0), np.log10(max(max(df["t"])*1.1, 180*60)), 500)
     fig1 = go.Figure()
     fig1.add_trace(go.Scatter(x=df["t"], y=df["P"], mode='markers', name="Dati reali", marker=dict(symbol='x', size=10)))
@@ -229,10 +234,6 @@ def calcola_e_mostra(time_values, power_values):
                             mode='lines', name="Curva base t ≤ TCPMAX", line=dict(dash='dash', color='blue')))
     fig1.add_hline(y=CP, line=dict(color='red', dash='dash'), annotation_text="CP", annotation_position="top right")
     fig1.add_vline(x=TCPMAX, line=dict(color='blue', dash='dot'), annotation_text="TCPMAX", annotation_position="bottom left")
-
-    # Tick logaritmici personalizzati con formato hh:mm:ss
-    x_ticks = [1,2,5,10,20,30,60,120,300,600,1200,1800,3600]  # secondi
-    x_ticklabels = [sec_to_hms_simple(t) for t in x_ticks]
 
     fig1.update_xaxes(
         type='log',
@@ -244,26 +245,48 @@ def calcola_e_mostra(time_values, power_values):
     fig1.update_layout(title="OmPD Curve", hovermode="x unified", height=700, showlegend=False)
     st.plotly_chart(fig1)
 
-    # Grafico Residuals
+    # =========================
+    # Fig2: Residuals
+    residuals = df["P"].values.astype(float) - ompd_power_with_bias(df["t"].values.astype(float), *params_bias)
     fig2 = go.Figure()
     fig2.add_trace(go.Scatter(x=df["t"], y=residuals, mode='lines+markers', name="Residuals",
-                              marker=dict(symbol='x', size=8), line=dict(color='red')))
+                            marker=dict(symbol='x', size=8), line=dict(color='red')))
     fig2.add_hline(y=0, line=dict(color='black', dash='dash'))
-    fig2.update_xaxes(type='log', title_text="Time (s)")
+
+    fig2.update_xaxes(
+        type='log',
+        title_text="Time",
+        tickvals=x_ticks,
+        ticktext=x_ticklabels
+    )
     fig2.update_yaxes(title_text="Residuals (W)")
-    fig2.update_layout(title="Residuals", hovermode="x unified", height=700)
+    fig2.update_layout(title="Residuals", hovermode="x unified", height=700, showlegend=False)
     st.plotly_chart(fig2)
 
-    # Grafico W'eff
+    # =========================
+    # Fig3: W'eff
+    T_plot_w = np.linspace(1, 3*60, 500)
+    Weff_plot = w_eff(T_plot_w, W_prime, CP, Pmax)
+    W_99 = 0.99 * W_prime
+    t_99_idx = np.argmin(np.abs(Weff_plot - W_99))
+    t_99 = T_plot_w[t_99_idx]
+    w_99 = Weff_plot[t_99_idx]
+
     fig3 = go.Figure()
     fig3.add_trace(go.Scatter(x=T_plot_w, y=Weff_plot, mode='lines', name="W'eff", line=dict(color='green')))
     fig3.add_hline(y=w_99, line=dict(color='blue', dash='dash'))
     fig3.add_vline(x=t_99, line=dict(color='blue', dash='dash'))
-    fig3.add_annotation(x=t_99, y=W_99, text=f"99% W'eff at {_format_time_label_custom(t_99)}",
+    fig3.add_annotation(x=t_99, y=W_99, text=f"99% W'eff at {sec_to_hms_simple(t_99)}",
                         showarrow=True, arrowhead=2)
-    fig3.update_xaxes(title_text="Time (s)")
+
+    fig3.update_xaxes(
+        type='log',
+        title_text="Time",
+        tickvals=x_ticks,
+        ticktext=x_ticklabels
+    )
     fig3.update_yaxes(title_text="W'eff (J)")
-    fig3.update_layout(title="OmPD Effective W'", hovermode="x unified", height=700)
+    fig3.update_layout(title="OmPD Effective W'", hovermode="x unified", height=700, showlegend=False)
     st.plotly_chart(fig3)
 
 # =========================
