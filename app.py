@@ -45,13 +45,13 @@ def _format_time_label_custom(seconds):
 
 # =========================
 # Titolo e info
-st.title("Bonvi omniPD model calculator <3 v0.6.1")
+st.title("Bonvi omniPD model calculator <3 v0.7")
 st.markdown(
     """
 Inserisci almeno **4 punti dati** (tra cui **sprint**) tempo (s) e potenza (W).  
 Oppure, più in basso ⬇️ puoi caricare un CSV con i dati.  
 Per avere valori di **A** inserisci **MMP oltre i 30 minuti** (opzionale).  
-**⚠⚠lo so che i grafici fan schifo... sono work in progress. Il resto funziona⚠⚠**
+**⚠⚠grafici work in progress⚠⚠**
 """,
     unsafe_allow_html=True
 )
