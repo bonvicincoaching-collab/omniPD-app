@@ -125,19 +125,27 @@ def calcola_e_mostra(time_values, power_values):
     params, _ = curve_fit(ompd_power, df["t"].values, df["P"].values, p0=initial_guess, maxfev=20000)
     CP, W_prime, Pmax, A = params
 
-    # Calcola predizione senza bias
-    P_pred_no_bias = ompd_power(df["t"].values.astype(float), CP, W_prime, Pmax, A)
-    # Calcola bias a posteriori
-    bias_real = np.mean(df["P"].values.astype(float) - P_pred_no_bias)
-    # Calcola residuals corretti con bias
-    residuals = df["P"].values.astype(float) - (P_pred_no_bias + bias_real)
-
+    # Fit OmPD con bias
+    initial_guess_bias = [np.percentile(df["P"],30),20000,df["P"].max(),5,0]
+    param_bounds = ([0,0,0,0,-100], [1000,50000,5000,100,100])
+    params_bias, _ = curve_fit(
+        ompd_power_with_bias,
+        df["t"].values.astype(float),
+        df["P"].values.astype(float),
+        p0=initial_guess_bias,
+        bounds=param_bounds,
+        maxfev=20000
+    )
+    CP_b, W_prime_b, Pmax_b, A_b, B_b = params_bias
+    P_pred = ompd_power_with_bias(df["t"].values.astype(float), *params_bias)
+    residuals = df["P"].values.astype(float) - P_pred
     RMSE = np.sqrt(np.mean(residuals**2))
     MAE = np.mean(np.abs(residuals))
+    bias_real = B_b
 
     # Salva parametri
     st.session_state["params_computed"] = {
-        "CP_b": CP, "W_prime_b": W_prime, "Pmax_b": Pmax, "A_b": A, "B_b": bias_real
+        "CP_b": CP_b, "W_prime_b": W_prime_b, "Pmax_b": Pmax_b, "A_b": A_b, "B_b": B_b
     }
 
     # W'eff
@@ -172,7 +180,7 @@ def calcola_e_mostra(time_values, power_values):
         st.markdown("**Residual summary**")
         st.markdown(f"RMSE: {RMSE:.2f} W")
         st.markdown(f"MAE: {MAE:.2f} W")
-        st.markdown(f"Bias: {bias_real:.2f} W")  # mostra bias corretto
+        st.markdown(f"Bias: {bias_real:.2f} W")
 
     with col3:
         st.markdown("**Valori teorici**")
@@ -184,7 +192,7 @@ def calcola_e_mostra(time_values, power_values):
          with col4:
              st.markdown("**Valori reali per stesse durate**")
              # Durate corrispondenti a quelle teoriche
-             match_durations = durations_s
+             match_durations = durations_s  # 5,10,15,20,30 minuti in secondi
              # Per ciascuna durata, trova il valore reale dal CSV più vicino al tempo
              times_csv = np.array(st.session_state["time_values_csv"])
              powers_csv = np.array(st.session_state["power_values_csv"])
@@ -197,6 +205,7 @@ def calcola_e_mostra(time_values, power_values):
     # =========================
     # Grafici
     # ========================
+    # Funzione per convertire secondi in formato semplificato
     def sec_to_hms_simple(seconds):
         h = int(seconds // 3600)
         m = int((seconds % 3600) // 60)
@@ -211,12 +220,16 @@ def calcola_e_mostra(time_values, power_values):
         else:
             return f"{s}s"
 
+    # Tick logaritmici rotondi comuni
     x_ticks = [1,2,5,10,20,30,60,180,300,600,1200,1800,3600]
     x_ticklabels = [sec_to_hms_simple(t) for t in x_ticks]
 
-    # Fig1
+    # =========================
+    # Fig1: OmPD Curve senza curva TCPMAX
     T_plot = np.logspace(np.log10(1.0), np.log10(max(max(df["t"])*1.1, 180*60)), 500)
     fig1 = go.Figure()
+
+    # Dati reali
     fig1.add_trace(go.Scatter(
         x=df["t"],
         y=df["P"],
@@ -226,6 +239,8 @@ def calcola_e_mostra(time_values, power_values):
         hovertemplate='Time: %{customdata}<br>Power: %{y:.0f} W<extra></extra>',
         customdata=[sec_to_hms_simple(t) for t in df["t"]]
     ))
+
+    # Curva OmPD
     fig1.add_trace(go.Scatter(
         x=T_plot,
         y=ompd_power(T_plot,*params),
@@ -234,14 +249,25 @@ def calcola_e_mostra(time_values, power_values):
         hovertemplate='Time: %{customdata}<br>Power: %{y:.0f} W<extra></extra>',
         customdata=[sec_to_hms_simple(t) for t in T_plot]
     ))
+
+    # Linee di riferimento CP e TCPMAX
     fig1.add_hline(y=CP, line=dict(color='red', dash='dash'), annotation_text="CP", annotation_position="top right")
     fig1.add_vline(x=TCPMAX, line=dict(color='blue', dash='dot'), annotation_text="TCPMAX", annotation_position="bottom left")
-    fig1.update_xaxes(type='log', title_text="Time", tickvals=x_ticks, ticktext=x_ticklabels)
+
+    # Asse x logaritmico con tick leggibili
+    fig1.update_xaxes(
+        type='log',
+        title_text="Time",
+        tickvals=x_ticks,
+        ticktext=x_ticklabels
+    )
     fig1.update_yaxes(title_text="Power (W)", range=[0, max(df["P"].max()*1.1, Pmax*1.1)])
     fig1.update_layout(title="OmPD Curve", hovermode="x unified", height=700, showlegend=False)
     st.plotly_chart(fig1)
 
-    # Fig2 residuals
+    # =========================
+    # Fig2: Residuals con tooltip
+    residuals = df["P"].values.astype(float) - ompd_power_with_bias(df["t"].values.astype(float), *params_bias)
     fig2 = go.Figure()
     fig2.add_trace(go.Scatter(
         x=df["t"],
@@ -253,12 +279,18 @@ def calcola_e_mostra(time_values, power_values):
         customdata=[sec_to_hms_simple(t) for t in df["t"]]
     ))
     fig2.add_hline(y=0, line=dict(color='black', dash='dash'))
-    fig2.update_xaxes(type='log', title_text="Time", tickvals=x_ticks, ticktext=x_ticklabels)
+    fig2.update_xaxes(
+        type='log',
+        title_text="Time",
+        tickvals=x_ticks,
+        ticktext=x_ticklabels
+    )
     fig2.update_yaxes(title_text="Residuals (W)", range=[-50, 50])
     fig2.update_layout(title="Residuals", hovermode="x unified", height=700, showlegend=False)
     st.plotly_chart(fig2)
 
-    # Fig3 W'eff
+    # =========================
+    # Fig3: W'eff con tooltip limitato a 5 minuti
     T_plot_w = np.linspace(1, 3*60, 500)
     Weff_plot = w_eff(T_plot_w, W_prime, CP, Pmax)
     W_99 = 0.99 * W_prime
@@ -279,6 +311,7 @@ def calcola_e_mostra(time_values, power_values):
     fig3.add_vline(x=t_99, line=dict(color='blue', dash='dash'))
     fig3.add_annotation(x=t_99, y=W_99, text=f"99% W'eff at {sec_to_hms_simple(t_99)}",
                         showarrow=True, arrowhead=2)
+
     fig3.update_xaxes(
         type='log',
         title_text="Time",
@@ -358,7 +391,6 @@ except Exception:
 
 if "params_computed" in st.session_state:
     p = st.session_state["params_computed"]
-    # usa il bias corretto B_b
     P_calc = ompd_power_with_bias(
         t_calc,
         p["CP_b"], p["W_prime_b"], p["Pmax_b"], p["A_b"], p["B_b"]
